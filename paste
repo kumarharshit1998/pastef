@@ -18,3 +18,91 @@ public IActionResult ListPdf()
 
     return View(files);
 }
+
+
+
+
+public class PdfFileModel
+{
+    public string FileName { get; set; }
+    public string AccountNumber { get; set; }
+    public string LMDBID { get; set; }
+    public string DateTimeStamp { get; set; }
+}
+
+
+
+
+@model List<PdfFileModel>
+@{
+    ViewBag.Title = "PDF Files";
+}
+
+<h2>PDF Files in Folder</h2>
+
+@if (TempData["Message"] != null)
+{
+    <div class="alert alert-info">@TempData["Message"]</div>
+}
+
+<table class="table table-bordered">
+    <thead>
+        <tr>
+            <th>File Name</th>
+            <th>Account Number</th>
+            <th>LMDB ID</th>
+            <th>Date</th>
+            <th>Delete</th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var file in Model)
+    {
+        <tr>
+            <td>@file.FileName</td>
+            <td>@file.AccountNumber</td>
+            <td>@file.LMDBID</td>
+            <td>@file.DateTimeStamp</td>
+            <td>
+                <form asp-action="DeletePdf" method="post">
+                    <input type="hidden" name="accountNumber" value="@file.AccountNumber" />
+                    <input type="hidden" name="lmid" value="@file.LMDBID" />
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+
+
+
+
+[HttpPost]
+public IActionResult DeletePdf(string accountNumber, string lmid)
+{
+    string sourceDir = @"\\dev\PDF files here";
+    string archiveDir = @"\\dev\Archive";
+
+    try
+    {
+        var matchingFiles = Directory.GetFiles(sourceDir, $"*_{accountNumber}_{lmid}_*.pdf")
+                            .Concat(Directory.GetFiles(archiveDir, $"*_{accountNumber}_{lmid}_*.pdf"));
+
+        foreach (var file in matchingFiles)
+        {
+            System.IO.File.Delete(file);
+        }
+
+        TempData["Message"] = "Files deleted successfully.";
+    }
+    catch (Exception ex)
+    {
+        TempData["Message"] = $"Error deleting files: {ex.Message}";
+    }
+
+    return RedirectToAction("ListPdf");
+}
+
+
