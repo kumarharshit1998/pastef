@@ -1,0 +1,20 @@
+public IActionResult ListPdf()
+{
+    string sourceDir = @"\\dev\PDF files here";
+    var files = Directory.GetFiles(sourceDir, "*.pdf")
+        .Select(file =>
+        {
+            string filename = Path.GetFileNameWithoutExtension(file);
+            string[] parts = filename.Split('_');
+
+            return new PdfFileModel
+            {
+                FileName = Path.GetFileName(file),
+                AccountNumber = parts.Length > 1 ? parts[1] : "",
+                LMDBID = parts.Length > 2 ? parts[2] : "",
+                DateTimeStamp = parts.Length > 3 ? parts[3] : ""
+            };
+        }).ToList();
+
+    return View(files);
+}
