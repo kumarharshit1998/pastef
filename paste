@@ -65,10 +65,12 @@ public class PdfFileModel
             <td>@file.DateTimeStamp</td>
             <td>
                 <form asp-action="DeletePdf" method="post">
-                    <input type="hidden" name="accountNumber" value="@file.AccountNumber" />
-                    <input type="hidden" name="lmid" value="@file.LMDBID" />
-                    <button type="submit" class="btn btn-danger">Delete</button>
-                </form>
+    <input type="hidden" name="accountNumber" value="@file.AccountNumber" />
+    <input type="hidden" name="lmid" value="@file.LMDBID" />
+    <input type="hidden" name="dateTimeStamp" value="@file.DateTimeStamp" />
+    <button type="submit" class="btn btn-danger">Delete</button>
+</form>
+
             </td>
         </tr>
     }
@@ -80,15 +82,18 @@ public class PdfFileModel
 
 
 [HttpPost]
-public IActionResult DeletePdf(string accountNumber, string lmid)
+public IActionResult DeletePdf(string accountNumber, string lmid, string dateTimeStamp)
 {
     string sourceDir = @"\\dev\PDF files here";
     string archiveDir = @"\\dev\Archive";
 
     try
     {
-        var matchingFiles = Directory.GetFiles(sourceDir, $"*_{accountNumber}_{lmid}_*.pdf")
-                            .Concat(Directory.GetFiles(archiveDir, $"*_{accountNumber}_{lmid}_*.pdf"));
+        // Pattern: *_Account_LMID_DateTimeStamp*.pdf
+        string filePattern = $"*_{accountNumber}_{lmid}_{dateTimeStamp}*.pdf";
+
+        var matchingFiles = Directory.GetFiles(sourceDir, filePattern)
+                            .Concat(Directory.GetFiles(archiveDir, filePattern));
 
         foreach (var file in matchingFiles)
         {
@@ -104,5 +109,6 @@ public IActionResult DeletePdf(string accountNumber, string lmid)
 
     return RedirectToAction("ListPdf");
 }
+
 
 
